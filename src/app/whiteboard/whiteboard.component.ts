@@ -1,19 +1,51 @@
-import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnInit } from '@angular/core';
 import { HostListener } from '@angular/core';
 import { P2pService } from '../p2p.service'; 
+import { Subscription } from 'rxjs';
+
 
 @Component({
   selector: 'app-whiteboard',
   templateUrl: './whiteboard.component.html',
   styleUrls: ['./whiteboard.component.css']
 })
-export class WhiteboardComponent implements AfterViewInit {
+
+export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild('whiteboardCanvas') canvas!: ElementRef<HTMLCanvasElement>;
+
   private ctx!: CanvasRenderingContext2D;
   private drawing = false;
+  private dataSubscription: Subscription = new Subscription();
+  currentColor: string = 'black';
+  currentBrushSize: number = 4;
 
   constructor(private p2pService: P2pService) {}
+  ngOnInit() {
+    this.dataSubscription = this.p2pService.getDataUpdates().subscribe(
+      (data) => {
+        // Handle the incoming data, for example:
+        this.updateCanvas(data);
+      }
+    );
+  }
 
+  private updateCanvas(data: any) {
+    // Assuming data contains x, y, color, and lineWidth
+    this.ctx.lineWidth = data.lineWidth;
+    this.ctx.lineCap = 'round';
+    this.ctx.strokeStyle = data.color;
+  
+    this.ctx.lineTo(data.x, data.y);
+    this.ctx.stroke();
+    this.ctx.beginPath();
+    this.ctx.moveTo(data.x, data.y);
+  }
+
+  ngOnDestroy() {
+    if (this.dataSubscription) {
+      this.dataSubscription.unsubscribe();
+    }
+  }
   ngAfterViewInit(): void {
     const context = this.canvas.nativeElement.getContext('2d');
     if (context) {
@@ -51,18 +83,40 @@ export class WhiteboardComponent implements AfterViewInit {
     if (!this.drawing) return;
 
     const rect = this.canvas.nativeElement.getBoundingClientRect();
-    this.ctx.lineWidth = 4; // You can make this dynamic
+    this.ctx.lineWidth = 4; 
     this.ctx.lineCap = 'round';
-    this.ctx.strokeStyle = 'black'; // Also can be dynamic
+    this.ctx.strokeStyle = 'black'; 
 
     this.ctx.lineTo(event.clientX - rect.left, event.clientY - rect.top);
     this.ctx.stroke();
     this.ctx.beginPath();
     this.ctx.moveTo(event.clientX - rect.left, event.clientY - rect.top);
+
     // Prepare the data to be sent
-    const data = { /* ... */ };
+    const data = {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      color: this.ctx.strokeStyle,
+      lineWidth: this.ctx.lineWidth,
+      
+    };
     // Send data to peers
     this.p2pService.sendDrawingData(data);
+  }
+
+  // Methods to update color and brush size
+  changeColor(newColor: string) {
+    this.currentColor = newColor;
+    this.ctx.strokeStyle = this.currentColor;
+  }
+
+  changeBrushSize(newSize: number) {
+    this.currentBrushSize = newSize;
+    this.ctx.lineWidth = this.currentBrushSize;
+  }
+  // Clear the canvas
+  clearCanvas() {
+    this.ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
   }
 
   private stopDrawing() {

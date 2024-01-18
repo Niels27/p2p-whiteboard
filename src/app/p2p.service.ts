@@ -1,21 +1,23 @@
 import { Injectable } from '@angular/core';
-import Peer from 'peerjs';
-
+import { Peer, DataConnection } from 'peerjs'; 
+import { Subject,BehaviorSubject  } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class P2pService {
   private peer: Peer;
-  private connections: Map<string, Peer.DataConnection> = new Map();
-  public peerId: string = '';
+  private connections: Map<string, DataConnection> = new Map();
+  private peerIdSubject: BehaviorSubject<string|null> = new BehaviorSubject<string|null>(null);
+  public peerId$ = this.peerIdSubject.asObservable(); // Public observable for components to subscribe
+  private dataSubject: Subject<any> = new Subject<any>(); 
 
   constructor() {
     // Initialize PeerJS
     this.peer = new Peer();
 
     this.peer.on('open', (id) => {
-      this.peerId = id;
+      this.peerIdSubject.next(id); // Emit the peer ID when it's ready
       console.log(`My peer ID is: ${id}`);
     });
 
@@ -29,7 +31,7 @@ export class P2pService {
     });
   }
 
-  private addConnection(peerId: string, conn: Peer.DataConnection) {
+  private addConnection(peerId: string, conn: DataConnection) {
     this.connections.set(peerId, conn);
   }
 
@@ -68,12 +70,15 @@ export class P2pService {
         console.log(`Connection to ${peerId} is not open.`);
       }
     });
-  }
 
+  }
+  // Components can subscribe to this method to get updates
+  getDataUpdates() {
+    return this.dataSubject.asObservable();
+  }
   private processReceivedData(data: any) {
-    // This method should pass the data to the components that need it
-    // For example, you can use an Observable to allow components to subscribe to incoming data
+    // Pass the data to all subscribers
+    this.dataSubject.next(data);
   }
 
-  // Other service methods...
 }

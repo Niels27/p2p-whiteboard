@@ -1,2 +1,10 @@
-<app-toolbar></app-toolbar>
+<div>
+    <p>Your Peer ID: {{ peerId }}</p>
+    <input type="text" [(ngModel)]="otherPeerId" placeholder="Enter another peer ID to connect">
+    <button (click)="connectToOtherPeer()">Connect</button>
+  </div>
+
 <app-whiteboard></app-whiteboard>
+
+
+  

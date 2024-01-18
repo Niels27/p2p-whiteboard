@@ -2,3 +2,6 @@
     <canvas id="whiteboardCanvas" #whiteboardCanvas></canvas>
 
 </div>
+<app-toolbar (colorChange)="changeColor($event)"
+             (brushSizeChange)="changeBrushSize($event)"
+             (canvasClear)="clearCanvas()"></app-toolbar>

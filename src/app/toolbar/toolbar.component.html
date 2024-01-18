@@ -1,6 +1,12 @@
 <div class="toolbar">
-    <!-- Add buttons or color pickers here -->
-    <button>Draw</button>
-    <button>Erase</button>
-    <!-- More tools -->
-</div>
+    <button (click)="setColor('black')">Black</button>
+    <button (click)="setColor('red')">Red</button>
+    <button (click)="setColor('green')">Green</button>
+  
+    <label for="brushSize">Brush Size:</label>
+    <input type="range" id="brushSize" min="1" max="10" (change)="setBrushSize($event)">
+    
+    <button (click)="clearCanvas()">Clear</button>
+
+  </div>
+  
