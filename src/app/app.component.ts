@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { P2pService } from './p2p.service';
+import { ViewChild } from '@angular/core';
+import { WhiteboardComponent } from './whiteboard/whiteboard.component'; // Import the WhiteboardComponent class
 
 @Component({
   selector: 'app-root',
@@ -8,9 +10,14 @@ import { P2pService } from './p2p.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit, OnDestroy {
+  @ViewChild(WhiteboardComponent) whiteboardComponent!: WhiteboardComponent;
+
   title= 'p2p-whiteboard';
   peerId: string = '';
   otherPeerId: string = '';
+  currentColor: string = 'black';
+  currentBrushSize: number = 5;
+
   private peerIdSubscription!: Subscription;
 
   constructor(private p2pService: P2pService) {}
@@ -37,4 +44,20 @@ export class AppComponent implements OnInit, OnDestroy {
       });
     }
   }
+
+  changeColor(newColor: string) {
+    this.currentColor = newColor;
+  }
+
+  changeBrushSize(newSize: number) {
+    this.currentBrushSize = newSize;
+  }
+
+  clearCanvas() {
+    console.log("Clear Canvas Method Called"); 
+    this.whiteboardComponent.clearCanvas();
+
+  }
+  
 }
+

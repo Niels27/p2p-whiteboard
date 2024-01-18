@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, OnInit,Input } from '@angular/core';
 import { HostListener } from '@angular/core';
 import { P2pService } from '../p2p.service'; 
 import { Subscription } from 'rxjs';
@@ -12,12 +12,13 @@ import { Subscription } from 'rxjs';
 
 export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
   @ViewChild('whiteboardCanvas') canvas!: ElementRef<HTMLCanvasElement>;
+  @Input() color: string = 'black';
+  @Input() brushSize: number = 5;
 
   private ctx!: CanvasRenderingContext2D;
   private drawing = false;
   private dataSubscription: Subscription = new Subscription();
-  currentColor: string = 'black';
-  currentBrushSize: number = 4;
+
 
   constructor(private p2pService: P2pService) {}
   ngOnInit() {
@@ -83,9 +84,9 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     if (!this.drawing) return;
 
     const rect = this.canvas.nativeElement.getBoundingClientRect();
-    this.ctx.lineWidth = 4; 
+    this.ctx.lineWidth = this.brushSize; // Use @Input brushSize
     this.ctx.lineCap = 'round';
-    this.ctx.strokeStyle = 'black'; 
+    this.ctx.strokeStyle = this.color; // Use @Input color
 
     this.ctx.lineTo(event.clientX - rect.left, event.clientY - rect.top);
     this.ctx.stroke();
@@ -104,19 +105,10 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     this.p2pService.sendDrawingData(data);
   }
 
-  // Methods to update color and brush size
-  changeColor(newColor: string) {
-    this.currentColor = newColor;
-    this.ctx.strokeStyle = this.currentColor;
-  }
-
-  changeBrushSize(newSize: number) {
-    this.currentBrushSize = newSize;
-    this.ctx.lineWidth = this.currentBrushSize;
-  }
-  // Clear the canvas
   clearCanvas() {
-    this.ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
+    if (this.ctx) {
+      this.ctx.clearRect(0, 0, this.canvas.nativeElement.width, this.canvas.nativeElement.height);
+    }
   }
 
   private stopDrawing() {

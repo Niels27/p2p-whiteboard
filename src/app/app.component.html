@@ -4,7 +4,7 @@
     <button (click)="connectToOtherPeer()">Connect</button>
   </div>
 
-<app-whiteboard></app-whiteboard>
-
-
+  <app-toolbar (colorChange)="changeColor($event)" (brushSizeChange)="changeBrushSize($event)" (canvasClear)="clearCanvas()"></app-toolbar>
+                 
+  <app-whiteboard [color]="currentColor" [brushSize]="currentBrushSize"></app-whiteboard>
   
