@@ -1,4 +1,13 @@
-<div class="whiteboard">
-    <canvas id="whiteboardCanvas" #whiteboardCanvas></canvas>
+<div class="whiteboard-container"
+     (drop)="onDrop($event)"
+     (dragover)="onDragOver($event)"
+     (dragleave)="onDragLeave($event)">
 
+  <div class="whiteboard">
+    <canvas #whiteboardCanvas></canvas>
+  </div>
+
+  <input type="file" (change)="onFileSelected($event)" style="display:none" #fileInput>
+  <button (click)="fileInput.click()">Upload Image</button>
+  
 </div>

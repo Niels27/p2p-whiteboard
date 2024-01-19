@@ -15,22 +15,36 @@ export class P2pService {
   constructor() {
     // Initialize PeerJS
     this.peer = new Peer();
-
+  
     this.peer.on('open', (id) => {
       this.peerIdSubject.next(id); // Emit the peer ID when it's ready
       console.log(`My peer ID is: ${id}`);
     });
-
+  
     // Listen for incoming connections
     this.peer.on('connection', (conn) => {
       this.addConnection(conn.peer, conn);
-      conn.on('data', (data) => {
-        // Handle received drawing data
-        this.processReceivedData(data);
+  
+      conn.on('data', (data: any) => { 
+        if (data.type === 'image') {
+          // Notify components or services that need to handle the image data
+          console.log("Image Received", data);
+          this.notifyImageReceived(data);
+        } else {
+          // Handle other types of received drawing data
+          this.processReceivedData(data);
+        }
       });
     });
   }
-
+  // Components can subscribe to this method to get updates
+  private imageReceivedSubject = new Subject<any>();
+  public imageReceived$ = this.imageReceivedSubject.asObservable();
+  
+  private notifyImageReceived(imageData: any) {
+    this.imageReceivedSubject.next(imageData);
+  }
+  
   private addConnection(peerId: string, conn: DataConnection) {
     this.connections.set(peerId, conn);
   }
@@ -58,6 +72,19 @@ export class P2pService {
       conn.on('data', (data) => {
         this.processReceivedData(data);
       });
+    });
+  }
+
+
+  // Method to send any data to all connected peers
+  sendDataToPeer(data: any) {
+    this.connections.forEach((conn, peerId) => {
+      if (conn.open) {
+        console.log("Image Data send: ", data);
+        conn.send(data);
+      } else {
+        console.log(`Connection to ${peerId} is not open.`);
+      }
     });
   }
 
