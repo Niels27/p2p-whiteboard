@@ -178,6 +178,8 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     reader.onload = (event: any) => {
       const img = new Image();
       img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
         // Maximum and minimum dimensions
         const maxWidth = 200, maxHeight = 200;
         const minWidth = 50, minHeight = 50;
@@ -206,11 +208,15 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
   
         // Draw the image with calculated dimensions
         this.ctx.drawImage(img, x, y, width, height);
-        
+
+        // Encode the canvas to data URL
+        const resizedDataUrl = canvas.toDataURL('image/jpeg');
+
         // Send the image data to the peer
         const imgData = {
           type: 'image',
-          data: event.target.result, // This is the data URL of the image
+          data: event.target.result, 
+          //data: resizedDataUrl,
           x: x,
           y: y,
           width: width,
@@ -226,12 +232,20 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
   }
 
   drawImage(dataUrl: string, x: number, y: number, width: number, height: number) {
-    const img = new Image();
-    img.onload = () => {
-      this.ctx.drawImage(img, x, y, width, height);
-    };
-    img.src = dataUrl;
+    if (this.ctx) {
+      const img = new Image();
+      img.onload = () => {
+        this.ctx.drawImage(img, x, y, width, height);
+      };
+      img.onerror = (error) => {
+        console.error("Error loading image: ", error);
+      };
+      img.src = dataUrl;
+    } else {
+      console.error("Canvas context is not valid.");
+    }
   }
+  
   
 
 }

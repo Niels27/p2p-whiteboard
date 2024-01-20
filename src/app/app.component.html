@@ -1,7 +1,10 @@
 <div>
-    <p>Your Peer ID: {{ peerId }}</p>
+    <p>Your Peer ID: {{ peerId }}  <button (click)="copyPeerId()">Copy</button></p> 
     <input type="text" [(ngModel)]="otherPeerId" placeholder="Enter another peer ID to connect">
+    <button (click)="pastePeerId()">Paste</button>
     <button (click)="connectToOtherPeer()">Connect</button>
+   
+    <button (click)="sendTestMessage()">Send Test Message</button>
   </div>
 
   <app-toolbar (colorChange)="changeColor($event)" (brushSizeChange)="changeBrushSize($event)" (canvasClear)="clearCanvas()"></app-toolbar>

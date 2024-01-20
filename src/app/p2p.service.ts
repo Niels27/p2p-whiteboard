@@ -24,14 +24,13 @@ export class P2pService {
     // Listen for incoming connections
     this.peer.on('connection', (conn) => {
       this.addConnection(conn.peer, conn);
-  
       conn.on('data', (data: any) => { 
         if (data.type === 'image') {
-          // Notify components or services that need to handle the image data
-          console.log("Image Received", data);
+          console.log("Image data Received", data);
           this.notifyImageReceived(data);
         } else {
-          // Handle other types of received drawing data
+          // Handle other types of received data
+          console.log("Data Received", data);
           this.processReceivedData(data);
         }
       });
@@ -60,6 +59,12 @@ export class P2pService {
       conn.on('open', () => {
         this.addConnection(peerId, conn);
         console.log(`Connected to: ${peerId}`);
+    
+        // Send a reciprocal connection request back to the peer
+        if (!this.connections.has(peerId)) {
+          this.peer.connect(peerId); // This should trigger the peer.on('connection') on the other peer
+        }
+    
         resolve();
       });
 
@@ -78,9 +83,11 @@ export class P2pService {
 
   // Method to send any data to all connected peers
   sendDataToPeer(data: any) {
+    const testData = { message: "Test message" };
     this.connections.forEach((conn, peerId) => {
       if (conn.open) {
-        console.log("Image Data send: ", data);
+        console.log("Data send: ", data);
+        //conn.send(testData);
         conn.send(data);
       } else {
         console.log(`Connection to ${peerId} is not open.`);
@@ -104,6 +111,7 @@ export class P2pService {
     return this.dataSubject.asObservable();
   }
   private processReceivedData(data: any) {
+    console.log("Processing received data: ", data);
     // Pass the data to all subscribers
     this.dataSubject.next(data);
   }

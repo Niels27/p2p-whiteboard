@@ -38,7 +38,7 @@ export class AppComponent implements OnInit, OnDestroy {
   connectToOtherPeer() {
     if (this.otherPeerId) {
       this.p2pService.connectToPeer(this.otherPeerId).then(() => {
-        console.log(`Connected to ${this.otherPeerId}`);
+        //console.log(`Connected to ${this.otherPeerId}`);
       }).catch(err => {
         console.error(`Error connecting to ${this.otherPeerId}:`, err);
       });
@@ -58,6 +58,37 @@ export class AppComponent implements OnInit, OnDestroy {
     this.whiteboardComponent.clearCanvas();
 
   }
+  sendTestMessage() {
+    this.p2pService.sendDataToPeer("Test"); 
+  }
+  copyPeerId() {
+    if (!this.peerId) {
+      console.log('No peer ID available to copy.');
+      return;
+    }
+  
+    // Use the Clipboard API to copy the text
+    navigator.clipboard.writeText(this.peerId).then(() => {
+      console.log('Peer ID copied to clipboard.');
+    }).catch(err => {
+      console.error('Failed to copy peer ID:', err);
+    });
+  }
+  pastePeerId() {
+    if (!this.peerId) {
+      console.log('No peer ID available to paste.');
+      return;
+    }
+  
+    // Use the Clipboard API to paste the text
+    navigator.clipboard.readText().then(text=> {
+      this.otherPeerId = text;
+      console.log('Peer ID pasted to clipboard.',this.otherPeerId);
+    }).catch(err => {
+      console.error('Failed to paste peer ID:', err);
+    });
+  }
+  
   
 }
 
