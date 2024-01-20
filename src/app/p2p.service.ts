@@ -9,19 +9,19 @@ export class P2pService {
   private peer: Peer;
   private connections: Map<string, DataConnection> = new Map();
   private peerIdSubject: BehaviorSubject<string|null> = new BehaviorSubject<string|null>(null);
-  public peerId$ = this.peerIdSubject.asObservable(); // Public observable for components to subscribe
+  public peerId$ = this.peerIdSubject.asObservable(); //Public observable for components to subscribe to
   private dataSubject: Subject<any> = new Subject<any>(); 
 
   constructor() {
-    // Initialize PeerJS
+    //Initializes PeerJS
     this.peer = new Peer();
   
     this.peer.on('open', (id) => {
-      this.peerIdSubject.next(id); // Emit the peer ID when it's ready
+      this.peerIdSubject.next(id); //Emits the peer ID once it's ready
       console.log(`My peer ID is: ${id}`);
     });
   
-    // Listen for incoming connections
+    //Listen for incoming connections
     this.peer.on('connection', (conn) => {
       this.addConnection(conn.peer, conn);
       conn.on('data', (data: any) => { 
@@ -29,14 +29,14 @@ export class P2pService {
           console.log("Image data Received", data);
           this.notifyImageReceived(data);
         } else {
-          // Handle other types of received data
+          //Handle other types of  data
           console.log("Data Received", data);
           this.processReceivedData(data);
         }
       });
     });
   }
-  // Components can subscribe to this method to get updates
+  //Components can subscribe to this method to get updates
   private imageReceivedSubject = new Subject<any>();
   public imageReceived$ = this.imageReceivedSubject.asObservable();
   
@@ -51,7 +51,7 @@ export class P2pService {
   connectToPeer(peerId: string): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.connections.has(peerId)) {
-        return resolve(); // Already connected
+        return resolve(); //if Already connected
       }
       
       const conn = this.peer.connect(peerId);
@@ -60,9 +60,9 @@ export class P2pService {
         this.addConnection(peerId, conn);
         console.log(`Connected to: ${peerId}`);
     
-        // Send a reciprocal connection request back to the peer
+        //Send a reciprocal connection request back to the peer
         if (!this.connections.has(peerId)) {
-          this.peer.connect(peerId); // This should trigger the peer.on('connection') on the other peer
+          this.peer.connect(peerId); //triggers the peer.on('connection') on the other peer
         }
     
         resolve();
@@ -73,15 +73,22 @@ export class P2pService {
         reject(err);
       });
 
-      // Handle receiving data
-      conn.on('data', (data) => {
-        this.processReceivedData(data);
+      //Handle receiving data
+      conn.on('data', (data: any) => {
+        if (data.type === 'image') {
+          console.log("Image data Received", data);
+          this.notifyImageReceived(data);
+        } else {
+          //Handle other types of received data
+          console.log("Data Received", data);
+          this.processReceivedData(data);
+        }
       });
     });
   }
 
 
-  // Method to send any data to all connected peers
+  //Method to send any data to all connected peers
   sendDataToPeer(data: any) {
     const testData = { message: "Test message" };
     this.connections.forEach((conn, peerId) => {
@@ -96,7 +103,7 @@ export class P2pService {
   }
 
   sendDrawingData(data: any) {
-    // Send data to all connected peers
+    //Send data to all connected peers
     this.connections.forEach((conn, peerId) => {
       if (conn.open) {
         conn.send(data);
@@ -106,13 +113,13 @@ export class P2pService {
     });
 
   }
-  // Components can subscribe to this method to get updates
+  //Components can subscribe to this method to get updates
   getDataUpdates() {
     return this.dataSubject.asObservable();
   }
   private processReceivedData(data: any) {
     console.log("Processing received data: ", data);
-    // Pass the data to all subscribers
+    //Pass the data to all subscribers
     this.dataSubject.next(data);
   }
 

@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { P2pService } from './p2p.service';
 import { ViewChild } from '@angular/core';
-import { WhiteboardComponent } from './whiteboard/whiteboard.component'; // Import the WhiteboardComponent class
+import { WhiteboardComponent } from './whiteboard/whiteboard.component'; 
 
 @Component({
   selector: 'app-root',
@@ -67,7 +67,7 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
   
-    // Use the Clipboard API to copy the text
+    //Uses the Clipboard API to copy the text
     navigator.clipboard.writeText(this.peerId).then(() => {
       console.log('Peer ID copied to clipboard.');
     }).catch(err => {
@@ -80,7 +80,7 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
   
-    // Use the Clipboard API to paste the text
+    //Uses the Clipboard API to paste the text
     navigator.clipboard.readText().then(text=> {
       this.otherPeerId = text;
       console.log('Peer ID pasted to clipboard.',this.otherPeerId);

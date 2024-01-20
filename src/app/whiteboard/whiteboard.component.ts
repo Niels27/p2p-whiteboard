@@ -26,14 +26,14 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
 
 
   ngOnInit() {
-    // Subscription for drawing data
+    //Subscription for drawing data
     this.dataSubscription = this.p2pService.getDataUpdates().subscribe(
       (data) => {
         this.updateCanvas(data);
       }
     );
 
-    // subscription for image data
+    //subscription for image data
     this.imageDataSubscription = this.p2pService.imageReceived$.subscribe(imageData => {
       this.drawImage(imageData.data, imageData.x, imageData.y, imageData.width, imageData.height);
     });
@@ -41,14 +41,20 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
 
 
   private updateCanvas(data: any) {
-    // Assuming data contains x, y, color, and lineWidth
+    if (data.isNewLine) {
+      //Start a new path for a new line
+      this.ctx.beginPath();
+    }
+  
+    //Existing drawing logic
     this.ctx.lineWidth = data.lineWidth;
     this.ctx.lineCap = 'round';
     this.ctx.strokeStyle = data.color;
   
     this.ctx.lineTo(data.x, data.y);
     this.ctx.stroke();
-    this.ctx.beginPath();
+  
+    //Move the current path to the last point
     this.ctx.moveTo(data.x, data.y);
   }
 
@@ -65,7 +71,7 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     if (context) {
       this.ctx = context;
     } else {
-      // Handle the error when the context is not available
+      //Handle the error when the context is not available
       console.error('Could not get canvas context');
     }
     this.resizeCanvas();
@@ -75,8 +81,8 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
   @HostListener('window:resize', ['$event'])
   resizeCanvas() {
     const canvasEl = this.canvas.nativeElement;
-    canvasEl.width = canvasEl.offsetWidth; // Set canvas internal width to match CSS width
-    canvasEl.height = canvasEl.offsetHeight; // Set canvas internal height to match CSS height
+    canvasEl.width = canvasEl.offsetWidth; //Set canvas internal width to match CSS width
+    canvasEl.height = canvasEl.offsetHeight; //Set canvas internal height to match CSS height
   }
 
   private addEventListeners() {
@@ -95,26 +101,33 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
 
   private draw(event: MouseEvent) {
     if (!this.drawing) return;
-
+  
     const rect = this.canvas.nativeElement.getBoundingClientRect();
-    this.ctx.lineWidth = this.brushSize; // Use @Input brushSize
+    this.ctx.lineWidth = this.brushSize; //Uses @Input brushSize
     this.ctx.lineCap = 'round';
-    this.ctx.strokeStyle = this.color; // Use @Input color
-
+    this.ctx.strokeStyle = this.color; //Uses @Input color
+  
+    //Starts a new path
+    this.ctx.beginPath(); 
+  
+    //Move to the starting point 
+    this.ctx.moveTo(event.clientX - rect.left, event.clientY - rect.top);
+  
+    //Add a line to the current position
     this.ctx.lineTo(event.clientX - rect.left, event.clientY - rect.top);
     this.ctx.stroke();
-    this.ctx.beginPath();
-    this.ctx.moveTo(event.clientX - rect.left, event.clientY - rect.top);
-
-    // Prepare the data to be sent
+  
+    //Prepare the data to be sent
     const data = {
       x: event.clientX - rect.left,
       y: event.clientY - rect.top,
       color: this.ctx.strokeStyle,
       lineWidth: this.ctx.lineWidth,
-      
+      //Indicate that this is a new line starting
+      isNewLine: true 
     };
-    // Send data to peers
+  
+    //Send data to peers
     this.p2pService.sendDrawingData(data);
   }
 
@@ -155,7 +168,8 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     const files = event.dataTransfer!.files;
     if (files.length > 0) {
       const rect = this.canvas.nativeElement.getBoundingClientRect();
-      const x = event.clientX - rect.left; // Convert to canvas coordinates
+      //Convert to canvas coordinates
+      const x = event.clientX - rect.left; 
       const y = event.clientY - rect.top;
       this.loadImage(files[0], x, y);
     }
@@ -180,11 +194,11 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        // Maximum and minimum dimensions
+        //Maximum and minimum dimensions
         const maxWidth = 200, maxHeight = 200;
         const minWidth = 50, minHeight = 50;
   
-        // Calculate scaling factor
+        //Calculate scaling factor
         let width = img.width;
         let height = img.height;
   
@@ -195,28 +209,27 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
         width *= scale;
         height *= scale;
   
-        // Ensure the image is not too small
+        //Ensure the image is not too small or too big
         if (width < minWidth || height < minHeight) {
           const minScale = Math.max(minWidth / width, minHeight / height);
           width *= minScale;
           height *= minScale;
         }
   
-        // Calculate the position to draw the image
-        const x = dropX ? dropX - width / 2 : 50; // Center the image on cursor if coordinates are provided
+        //Calculate the position to draw the image
+        const x = dropX ? dropX - width / 2 : 50; //Center the image on cursor if coordinates are provided
         const y = dropY ? dropY - height / 2 : 50;
   
-        // Draw the image with calculated dimensions
+        //Draw the image with calculated dimensions
         this.ctx.drawImage(img, x, y, width, height);
 
-        // Encode the canvas to data URL
+        //Encodes the canvas to data URL
         const resizedDataUrl = canvas.toDataURL('image/jpeg');
 
-        // Send the image data to the peer
+        //Send the image data to the peer
         const imgData = {
           type: 'image',
           data: event.target.result, 
-          //data: resizedDataUrl,
           x: x,
           y: y,
           width: width,
