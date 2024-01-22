@@ -42,7 +42,6 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
 
   private updateCanvas(data: any) {
     if (data.isNewLine) {
-      //Start a new path for a new line
       this.ctx.beginPath();
     }
   
@@ -71,7 +70,6 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     if (context) {
       this.ctx = context;
     } else {
-      //Handle the error when the context is not available
       console.error('Could not get canvas context');
     }
     this.resizeCanvas();
@@ -81,8 +79,8 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
   @HostListener('window:resize', ['$event'])
   resizeCanvas() {
     const canvasEl = this.canvas.nativeElement;
-    canvasEl.width = canvasEl.offsetWidth; //Set canvas internal width to match CSS width
-    canvasEl.height = canvasEl.offsetHeight; //Set canvas internal height to match CSS height
+    canvasEl.width = canvasEl.offsetWidth; 
+    canvasEl.height = canvasEl.offsetHeight; 
   }
 
   private addEventListeners() {
@@ -103,19 +101,26 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     if (!this.drawing) return;
   
     const rect = this.canvas.nativeElement.getBoundingClientRect();
-    this.ctx.lineWidth = this.brushSize; //Uses @Input brushSize
+    this.ctx.lineWidth = this.brushSize; 
     this.ctx.lineCap = 'round';
-    this.ctx.strokeStyle = this.color; //Uses @Input color
+    this.ctx.strokeStyle = this.color; 
   
-    //Starts a new path
-    this.ctx.beginPath(); 
+
+   
+   
+  //Begin a new path
+  this.ctx.beginPath();
+
+  //Move to the starting point
+  this.ctx.moveTo(event.clientX - rect.left, event.clientY - rect.top);
+
+  //Add a line to the current position
+  this.ctx.lineTo(event.clientX - rect.left, event.clientY - rect.top);
+
+  //Stroke the path
+  this.ctx.stroke();
   
-    //Move to the starting point 
-    this.ctx.moveTo(event.clientX - rect.left, event.clientY - rect.top);
-  
-    //Add a line to the current position
-    this.ctx.lineTo(event.clientX - rect.left, event.clientY - rect.top);
-    this.ctx.stroke();
+ 
   
     //Prepare the data to be sent
     const data = {
@@ -123,13 +128,13 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
       y: event.clientY - rect.top,
       color: this.ctx.strokeStyle,
       lineWidth: this.ctx.lineWidth,
-      //Indicate that this is a new line starting
-      isNewLine: true 
+      isNewLine: true
     };
   
     //Send data to peers
     this.p2pService.sendDrawingData(data);
   }
+  
 
   private stopDrawing() {
     this.drawing = false;
@@ -168,7 +173,7 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     const files = event.dataTransfer!.files;
     if (files.length > 0) {
       const rect = this.canvas.nativeElement.getBoundingClientRect();
-      //Convert to canvas coordinates
+      //convert to canvas coordinates
       const x = event.clientX - rect.left; 
       const y = event.clientY - rect.top;
       this.loadImage(files[0], x, y);
@@ -194,7 +199,7 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
       img.onload = () => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
-        //Maximum and minimum dimensions
+        //resize the images
         const maxWidth = 200, maxHeight = 200;
         const minWidth = 50, minHeight = 50;
   
@@ -209,21 +214,21 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
         width *= scale;
         height *= scale;
   
-        //Ensure the image is not too small or too big
+        //makes sure that the image is not too small or too big
         if (width < minWidth || height < minHeight) {
           const minScale = Math.max(minWidth / width, minHeight / height);
           width *= minScale;
           height *= minScale;
         }
   
-        //Calculate the position to draw the image
-        const x = dropX ? dropX - width / 2 : 50; //Center the image on cursor if coordinates are provided
+        //calculate the position to place the image
+        const x = dropX ? dropX - width / 2 : 50; 
         const y = dropY ? dropY - height / 2 : 50;
   
         //Draw the image with calculated dimensions
         this.ctx.drawImage(img, x, y, width, height);
 
-        //Encodes the canvas to data URL
+        //encode the canvas to data URL
         const resizedDataUrl = canvas.toDataURL('image/jpeg');
 
         //Send the image data to the peer

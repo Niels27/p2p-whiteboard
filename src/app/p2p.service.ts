@@ -60,9 +60,9 @@ export class P2pService {
         this.addConnection(peerId, conn);
         console.log(`Connected to: ${peerId}`);
     
-        //Send a reciprocal connection request back to the peer
+        //Send a twoway connection request back to the peer
         if (!this.connections.has(peerId)) {
-          this.peer.connect(peerId); //triggers the peer.on('connection') on the other peer
+          this.peer.connect(peerId); //triggers the peer.on at the other peer
         }
     
         resolve();

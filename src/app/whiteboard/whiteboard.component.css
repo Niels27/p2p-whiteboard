@@ -15,5 +15,5 @@ canvas {
 }
 
 .whiteboard.dragover {
-    border: 2px dashed #666; /* Style for dragover state */
+    border: 2px dashed #666; 
   }
