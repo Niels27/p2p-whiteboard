@@ -60,11 +60,6 @@ export class P2pService {
         this.addConnection(peerId, conn);
         console.log(`Connected to: ${peerId}`);
     
-        //Send a twoway connection request back to the peer
-        if (!this.connections.has(peerId)) {
-          this.peer.connect(peerId); //triggers the peer.on at the other peer
-        }
-    
         resolve();
       });
 
@@ -86,7 +81,6 @@ export class P2pService {
       });
     });
   }
-
 
   //Method to send any data to all connected peers
   sendDataToPeer(data: any) {

@@ -39,7 +39,6 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     });
   }
 
-
   private updateCanvas(data: any) {
     if (data.isNewLine) {
       this.ctx.beginPath();
@@ -105,8 +104,6 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     this.ctx.lineCap = 'round';
     this.ctx.strokeStyle = this.color; 
   
-
-   
    
   //Begin a new path
   this.ctx.beginPath();
@@ -121,7 +118,6 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
   this.ctx.stroke();
   
  
-  
     //Prepare the data to be sent
     const data = {
       x: event.clientX - rect.left,
@@ -135,7 +131,6 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     this.p2pService.sendDrawingData(data);
   }
   
-
   private stopDrawing() {
     this.drawing = false;
     this.ctx.beginPath(); 
@@ -264,6 +259,4 @@ export class WhiteboardComponent implements AfterViewInit, OnDestroy, OnInit {
     }
   }
   
-  
-
 }
